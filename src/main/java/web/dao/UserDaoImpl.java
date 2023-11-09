@@ -11,19 +11,17 @@ import java.util.List;
 @Repository
 public class UserDaoImpl implements UserDao {
 
-
     @PersistenceContext
     private EntityManager entityManager;
 
-
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return entityManager.createQuery("select u from User u", User.class).getResultList();
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return entityManager.find(User.class, id);
     }
@@ -37,13 +35,25 @@ public class UserDaoImpl implements UserDao {
     @Override
     @Transactional
     public void updateUser(Long id, User updatedUser) {
-        entityManager.merge(updatedUser);
+        User existingUser = entityManager.find(User.class, id);
+        if (existingUser == null) {
+            // Обработка случая, когда записи не существует
+            throw new RuntimeException("Пользователь не найден");
+        }
+        // Выполнение обновления сущности внутри транзакции
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        User proxyUser = entityManager.find(User.class, id);
-        entityManager.remove(proxyUser);
+        User existingUser = entityManager.find(User.class, id);
+        if (existingUser == null) {
+            // Обработка случая, когда записи не существует
+            throw new RuntimeException("Пользователь не найден");
+        }
+        entityManager.remove(existingUser);
     }
 }

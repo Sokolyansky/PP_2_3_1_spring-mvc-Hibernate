@@ -8,6 +8,7 @@
 <div th:each="user : ${users}">
     <p>
         <a th:href="@{/edituser(id=${user.getId()})}" th:text="${user.getFirstName()} + ' ' + ${user.getLastName()}">id</a>
+        <a th:href="@{/delete_user(id=${user.getId()})}">    Удалить </a>
 
     </p>
 </div>
